@@ -1,4 +1,5 @@
 import os
+from sys import platform
 
 LESSONS = ['BI7-Binf', 'BI7-Life_science', 'BI3-Wiskunde', 'BI3-Binf']
 
@@ -33,7 +34,12 @@ def parser(content):
                 else:
                     break
             eventEnd = i + 1
+            description = "DESCRIPTION:"
             for i in range(eventStart, eventEnd):
+                if content[i].startswith("ATTENDEE;"):
+                    description += content[i].split(';')[1].split(':')[0]
+                elif content[i].startswith("SEQUENCE:"):
+                    processedContent.append(description + '\n')
                 processedContent.append(content[i])
     processedContent.append("END:VCALENDAR\n")
     return processedContent
@@ -53,12 +59,20 @@ def main():
     print("Found " + str(len(toBeProcessed)) + " files to be processed.")
     if not outexists:
         os.mkdir('out')
-    outpath = path + "\\out"
+    if platform == 'linux':
+        outpath = path + "/out"
+    else:
+        outpath = path + "\\out"
+    print(outpath)
     for file in toBeProcessed:
         print("Processing file: " + file)
         fileContent = readfile(file)
         processedContent = parser(fileContent)
-        writepath = outpath + "\\" + file
+        if platform == 'linux':
+            writepath = outpath + "/" + file
+        else:
+            writepath = outpath + "\\" + file
+        print("Writing to file: out/" + file)
         with open(writepath, 'w') as f:
             f.writelines(processedContent)
 
